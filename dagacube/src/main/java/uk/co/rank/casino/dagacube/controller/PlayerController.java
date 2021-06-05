@@ -67,7 +67,7 @@ public class PlayerController {
    */
   @PostMapping(value = "/transaction/history")
   public ResponseEntity<TransactionHistoryResponseDto> transactionHistory(TransactionHistoryRequestDto requestDto) {
-    //TODO: Implement
-    return ResponseEntity.status(HttpStatus.OK).body(new TransactionHistoryResponseDto());
+    TransactionHistoryResponseDto transactionHistoryResponseDto = playerService.getTransactionHistory(requestDto);
+    return ResponseEntity.status(HttpStatus.OK).body(transactionHistoryResponseDto);
   }
 }

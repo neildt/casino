@@ -3,19 +3,27 @@
  */
 package uk.co.rank.casino.dagacube.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import uk.co.rank.casino.dagacube.controller.Exceptions.AccountNotFoundException;
+import uk.co.rank.casino.dagacube.controller.Exceptions.IncorrectSecretException;
 import uk.co.rank.casino.dagacube.controller.Exceptions.InsufficientFundsException;
 import uk.co.rank.casino.dagacube.controller.Exceptions.PlayerNotFoundException;
 import uk.co.rank.casino.dagacube.domain.dao.AccountRepository;
 import uk.co.rank.casino.dagacube.domain.dao.PlayerRepository;
 import uk.co.rank.casino.dagacube.domain.dao.TransactionRepository;
 import uk.co.rank.casino.dagacube.domain.enums.TransactionType;
+import uk.co.rank.casino.dagacube.domain.model.Account;
 import uk.co.rank.casino.dagacube.domain.model.Player;
 import uk.co.rank.casino.dagacube.domain.model.Transaction;
+import uk.co.rank.casino.dagacube.dto.request.TransactionHistoryRequestDto;
 import uk.co.rank.casino.dagacube.dto.request.WagerWinRequestDTO;
+import uk.co.rank.casino.dagacube.dto.response.TransactionHistoryResponseDto;
+import uk.co.rank.casino.dagacube.dto.response.TransactionResponseDTO;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -24,6 +32,9 @@ public class PlayerService {
   private final PlayerRepository playerRepository;
   private final AccountRepository accountRepository;
   private final TransactionRepository transactionRepository;
+
+  @Value("${transaction.history.secret:swordfish}")
+  private String transactionHistorySecret;
 
   public PlayerService(PlayerRepository playerRepository, AccountRepository accountRepository, TransactionRepository transactionRepository) {
     this.playerRepository = playerRepository;
@@ -38,22 +49,21 @@ public class PlayerService {
    * @return BigDecimal - The current player balance
    */
   public BigDecimal getPlayerBalance(long playerId) {
-    BigDecimal playerBalance = null;
     Player player = getPlayer(playerId);
-    if (player != null) {
-      playerBalance = player.getAccount().getBalance();
-    } else {
-      throw new PlayerNotFoundException();
-    }
-    return playerBalance;
+    Account account = getAccount(player);
+    return account.getBalance();
   }
 
+  /**
+   * Add a wager transaction and update player balance
+   *
+   * @param playerId   - The player ID to add the transaction to
+   * @param requestDTO - The {@link WagerWinRequestDTO} with the transaction details
+   * @return BigDecimal - The current player balance
+   */
   public BigDecimal addWager(long playerId, WagerWinRequestDTO requestDTO) {
 
     Player player = getPlayer(playerId);
-    if (player == null) {
-      throw new PlayerNotFoundException();
-    }
 
     BigDecimal playerBalance = player.getAccount().getBalance();
     if (!transactionExists(requestDTO.getTransactionId())) {
@@ -66,11 +76,15 @@ public class PlayerService {
     return playerBalance;
   }
 
+  /**
+   * Add a win transaction and update player balance
+   *
+   * @param playerId   - The player ID to add the transaction to
+   * @param requestDTO - The {@link WagerWinRequestDTO} with the transaction details
+   * @return BigDecimal - The current player balance
+   */
   public BigDecimal addWin(long playerId, WagerWinRequestDTO requestDTO) {
     Player player = getPlayer(playerId);
-    if (player == null) {
-      throw new PlayerNotFoundException();
-    }
 
     BigDecimal playerBalance = player.getAccount().getBalance();
     if (!transactionExists(requestDTO.getTransactionId())) {
@@ -94,8 +108,8 @@ public class PlayerService {
    * Process the provided transaction by adding it against a player and updating the player's balance
    *
    * @param player          - The player Id to update
-   * @param requestDTO      - The WagerWinRequestDTO with the transaction details
-   * @param transactionType - The type of transaction to add
+   * @param requestDTO      - The {@link WagerWinRequestDTO} with the transaction details
+   * @param transactionType - The {@link TransactionType} to add
    * @return BigDecimal - The player's balance after the transaction
    */
   private BigDecimal processTransaction(Player player, WagerWinRequestDTO requestDTO, TransactionType transactionType) {
@@ -120,8 +134,8 @@ public class PlayerService {
   /**
    * Create a transaction for the provided player
    *
-   * @param requestDTO      - The WagerWinRequestDTO with the transaction details
-   * @param transactionType - The type of transaction to add
+   * @param requestDTO      - The {@link WagerWinRequestDTO} with the transaction details
+   * @param transactionType - The {@link TransactionType} to add
    * @param player          - The player to which to add the transaction
    */
   private void createTransaction(WagerWinRequestDTO requestDTO, TransactionType transactionType, Player player) {
@@ -141,12 +155,53 @@ public class PlayerService {
    * @return Player - populated if present, null otherwise
    */
   private Player getPlayer(long playerId) {
-    Player player = null;
-    BigDecimal playerBalance = BigDecimal.ZERO;
     Optional<Player> playerOptional = playerRepository.findById(playerId);
-    if (playerOptional.isPresent()) {
-      player = playerOptional.get();
+    if (playerOptional.isEmpty()) {
+      throw new PlayerNotFoundException();
     }
-    return player;
+    return playerOptional.get();
+  }
+
+  private Account getAccount(Player player) {
+    Account account = null;
+    if (player.getAccount() != null) {
+      account = player.getAccount();
+    } else {
+      throw new AccountNotFoundException();
+    }
+    return account;
+  }
+
+  public TransactionHistoryResponseDto getTransactionHistory(TransactionHistoryRequestDto requestDto) {
+    if (!requestDto.getSecret().equalsIgnoreCase(transactionHistorySecret))
+    {
+      throw new IncorrectSecretException();
+    }
+
+    Optional<Player> playerOptional = playerRepository.findByUsername(requestDto.getUsername());
+    if (playerOptional.isEmpty()) {
+      throw new PlayerNotFoundException();
+    }
+
+    if (playerOptional.get().getAccount() == null) {
+      throw new AccountNotFoundException();
+    }
+
+    long accountId = playerOptional.get().getAccount().getId();
+    List<Transaction> transactions = transactionRepository.getLatestTransactions(accountId, 10);
+    TransactionHistoryResponseDto transactionHistoryResponseDto = new TransactionHistoryResponseDto();
+
+    for (Transaction transaction : transactions) {
+      TransactionResponseDTO transactionResponseDTO = new TransactionResponseDTO();
+
+      transactionResponseDTO.setAmount(transaction.getAmount());
+      transactionResponseDTO.setTime(transaction.getTime());
+      transactionResponseDTO.setTransactionId(transaction.getId());
+      transactionResponseDTO.setTransactionType(transaction.getType().toString());
+
+      transactionHistoryResponseDto.addTransaction(transactionResponseDTO);
+    }
+
+    return transactionHistoryResponseDto;
   }
 }

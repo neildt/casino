@@ -14,6 +14,8 @@ public class Player {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private long id;
+
+  @Column(unique=true)
   private String username;
 
   @OneToOne(cascade = CascadeType.ALL)

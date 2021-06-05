@@ -22,39 +22,41 @@ import java.math.BigDecimal;
 @Component
 public class SetupDataLoader implements ApplicationListener<ContextRefreshedEvent> {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private boolean alreadySetup = false;
+  private boolean alreadySetup = false;
 
-    @Value("${setup.initial.data:false}")
-    private boolean setupInitialData;
+  @Value("${setup.initial.data:false}")
+  private boolean setupInitialData;
 
-    private final PlayerRepository playerRepository;
+  private final PlayerRepository playerRepository;
 
 
-    public SetupDataLoader(PlayerRepository playerRepository) {
-        this.playerRepository = playerRepository;
+  public SetupDataLoader(PlayerRepository playerRepository) {
+    this.playerRepository = playerRepository;
+  }
+
+  @Override
+  @Transactional
+  public void onApplicationEvent(final ContextRefreshedEvent event) {
+    if (!setupInitialData || alreadySetup) {
+      return;
     }
 
-    @Override
-    @Transactional
-    public void onApplicationEvent(final ContextRefreshedEvent event) {
-        if (!setupInitialData || alreadySetup) {
-            return;
-        }
+    logger.info("Setting up initial player data");
 
-        logger.info("Setting up initial player data");
+    createPlayerIfNotFound("NeilDuToit", new BigDecimal("100.00"));
+    createPlayerIfNotFound("PlayerNumber2", new BigDecimal("500.00"));
+    alreadySetup = true;
+  }
 
-        createPlayerIfNotFound("NeilDuToit", new BigDecimal("100.00"));
-        createPlayerIfNotFound("PlayerNumber2", new BigDecimal("500.00"));
-        alreadySetup = true;
+  private void createPlayerIfNotFound(final String userName, final BigDecimal accountBalance) {
+    if (playerRepository.findByUsername(userName).isEmpty()) {
+      Player player = new Player(userName);
+      Account account = new Account(accountBalance);
+      player.setAccount(account);
+      playerRepository.save(player);
+      logger.info("Created player: " + player.toString());
     }
-
-    private void createPlayerIfNotFound(final String userName, final BigDecimal accountBalance) {
-        Player player = new Player(userName);
-        Account account = new Account(accountBalance);
-        player.setAccount(account);
-        playerRepository.save(player);
-        logger.info("Created player: " + player.toString());
-    }
+  }
 }
