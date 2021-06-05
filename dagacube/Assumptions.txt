@@ -1,0 +1,18 @@
+Assumptions made
+- The wager/win transactions will be sending it's data as URL-Encoded Form.
+- Players will be created manually in the database through a database editor. I have created a flag 'setup.initial.data' in application-dev.properties to create two users for testing purposes.
+- It is unclear if Pam wants to see the last 10 transactions or the last 10 of each - assuming she wants to see the last 10 overall for the player.
+- It is unclear if the player's id that Jim is referencing, and the player's username that Pam mentioned, are the same thing, so assuming the 'ID' is the table ID, and the username is an aplhanumeric name.
+- The password to access information may change at some point, and we don't want to have to deploy a new build just to change that, so it can be changed in the applicaiton.properties file.
+- An H2 database will be used for now, although, it is not scalable. It can easily be replaced by a more scalable database in the future.
+- The CEO mentioning tech debt can be fixed in the future, I could have swung this two ways
+	1. Tell the CEO that I recommend taking the extra 30 minutes to do it now, because in reality, tech debt never gets fixed.
+	2. Add TODO statements in the code and add a task in the backlog to fix it whenever the relevant classes are uptaded - if this application makes it out of POC.
+	I went for the latter approach as in my scenario I am playing it as if 'every second counts', which is also why I made several commits, allowing a release to go out at any one of the milestones.
+	- As Toby said, it is possible build a system like in less than 3 hours, but that would exclude things that are recommended for enterprise applications, such as:
+	- Automated testing (API, Unit tests, Integration tests)
+	- Deployment scripts (Docker, Kubernetes, Cloud Native, etc)
+	- Automatic builds and potentially continuous delivery
+	- SSL certificates - Which may not be needed if this application runs inside a secure network
+	- Auto-Generated API documentation (Swagger)
+	These items also need to be placed in the backlog to prevent repetitive, time-consuming work in the future.
