@@ -22,6 +22,8 @@ public class Player {
   @JoinColumn(name = "account_id", referencedColumnName = "id")
   private Account account;
 
+  private int freeWagers = 0;
+
   public Player() {
   }
 
@@ -49,12 +51,21 @@ public class Player {
     this.account = account;
   }
 
+  public int getFreeWagers() {
+    return freeWagers;
+  }
+
+  public void setFreeWagers(int freeWagers) {
+    this.freeWagers = freeWagers;
+  }
+
   @Override
   public String toString() {
     return "Player{" +
             "id=" + id +
             ", username='" + username + '\'' +
             ", account=" + account +
+            ", freeWagers=" + freeWagers +
             '}';
   }
 }

@@ -7,8 +7,10 @@ public class TransactionResponseDTO {
 
   private String transactionId;
   private BigDecimal amount;
+  private BigDecimal balanceAfter;
   private String transactionType;
   private LocalDateTime time;
+  private boolean freeWager;
 
   public String getTransactionId() {
     return transactionId;
@@ -26,6 +28,14 @@ public class TransactionResponseDTO {
     this.amount = amount;
   }
 
+  public BigDecimal getBalanceAfter() {
+    return balanceAfter;
+  }
+
+  public void setBalanceAfter(BigDecimal balanceAfter) {
+    this.balanceAfter = balanceAfter;
+  }
+
   public String getTransactionType() {
     return transactionType;
   }
@@ -40,5 +50,25 @@ public class TransactionResponseDTO {
 
   public void setTime(LocalDateTime time) {
     this.time = time;
+  }
+
+  public boolean isFreeWager() {
+    return freeWager;
+  }
+
+  public void setFreeWager(boolean freeWager) {
+    this.freeWager = freeWager;
+  }
+
+  @Override
+  public String toString() {
+    return "TransactionResponseDTO{" +
+            "transactionId='" + transactionId + '\'' +
+            ", amount=" + amount +
+            ", balanceAfter=" + balanceAfter +
+            ", transactionType='" + transactionType + '\'' +
+            ", time=" + time +
+            ", freeWager=" + freeWager +
+            '}';
   }
 }

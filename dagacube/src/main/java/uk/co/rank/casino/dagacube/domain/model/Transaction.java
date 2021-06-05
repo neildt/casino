@@ -30,8 +30,12 @@ public class Transaction {
 
   private BigDecimal amount;
 
+  private BigDecimal balanceAfter;
+
   @Convert(converter = LocalDateTimeConverter.class)
   private LocalDateTime time;
+
+  private boolean freeWager;
 
   public String getId() {
     return id;
@@ -65,6 +69,14 @@ public class Transaction {
     this.amount = amount;
   }
 
+  public BigDecimal getBalanceAfter() {
+    return balanceAfter;
+  }
+
+  public void setBalanceAfter(BigDecimal balanceAfter) {
+    this.balanceAfter = balanceAfter;
+  }
+
   public LocalDateTime getTime() {
     return time;
   }
@@ -73,14 +85,23 @@ public class Transaction {
     this.time = time;
   }
 
+  public boolean isFreeWager() {
+    return freeWager;
+  }
+
+  public void setFreeWager(boolean promotion) {
+    this.freeWager = promotion;
+  }
+
   @Override
   public String toString() {
     return "Transaction{" +
             "id='" + id + '\'' +
             ", account=" + account +
-            ", type='" + type + '\'' +
+            ", type=" + type +
             ", amount=" + amount +
             ", time=" + time +
+            ", freeWager=" + freeWager +
             '}';
   }
 }

@@ -3,6 +3,7 @@
  */
 package uk.co.rank.casino.dagacube.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.co.rank.casino.dagacube.controller.Exceptions.AccountNotFoundException;
@@ -62,17 +63,21 @@ public class PlayerService {
    * @return BigDecimal - The current player balance
    */
   public BigDecimal addWager(long playerId, WagerWinRequestDTO requestDTO) {
-
     Player player = getPlayer(playerId);
-
     BigDecimal playerBalance = player.getAccount().getBalance();
-    if (!transactionExists(requestDTO.getTransactionId())) {
-      if (playerBalance.compareTo(requestDTO.getAmount()) < 0) {
-        throw new InsufficientFundsException();
-      }
 
+    if (!transactionExists(requestDTO.getTransactionId())) {
+      if (StringUtils.isNotBlank(requestDTO.getPromoCode()) && "paper".equalsIgnoreCase(requestDTO.getPromoCode())) {
+        player.setFreeWagers(5);
+      } else if (player.getFreeWagers() == 0) {
+        //Only check balance if the wager is not free
+        if (playerBalance.compareTo(requestDTO.getAmount()) < 0) {
+          throw new InsufficientFundsException();
+        }
+      }
       playerBalance = processTransaction(player, requestDTO, TransactionType.WAGER);
     }
+    playerRepository.save(player);
     return playerBalance;
   }
 
@@ -114,21 +119,39 @@ public class PlayerService {
    */
   private BigDecimal processTransaction(Player player, WagerWinRequestDTO requestDTO, TransactionType transactionType) {
 
-    createTransaction(requestDTO, transactionType, player);
-
+    boolean isfreeWager = false;
     BigDecimal balance = player.getAccount().getBalance();
     switch (transactionType) {
       case WIN:
         balance = balance.add(requestDTO.getAmount());
         break;
       case WAGER:
-        balance = balance.subtract(requestDTO.getAmount());
+        isfreeWager = checkFreeWager(player);
+        if (!isfreeWager) {
+          balance = balance.subtract(requestDTO.getAmount());
+        }
         break;
     }
     player.getAccount().setBalance(balance);
     playerRepository.save(player);
 
+    createTransaction(requestDTO, transactionType, player, isfreeWager);
+
     return balance;
+  }
+
+  /**
+   * Check if the current wager is free for the player, and decrement if it is
+   * @param player - The player to check
+   * @return boolean - if the current wager is free
+   */
+  private boolean checkFreeWager(Player player) {
+    boolean isfreeWager = false;
+    if (player.getFreeWagers() > 0) {
+      player.setFreeWagers(player.getFreeWagers() - 1);
+      isfreeWager = true;
+    }
+    return isfreeWager;
   }
 
   /**
@@ -138,13 +161,15 @@ public class PlayerService {
    * @param transactionType - The {@link TransactionType} to add
    * @param player          - The player to which to add the transaction
    */
-  private void createTransaction(WagerWinRequestDTO requestDTO, TransactionType transactionType, Player player) {
+  private void createTransaction(WagerWinRequestDTO requestDTO, TransactionType transactionType, Player player, boolean isfreeWager) {
     Transaction transaction = new Transaction();
     transaction.setId(requestDTO.getTransactionId());
     transaction.setAccount(player.getAccount());
     transaction.setAmount(requestDTO.getAmount());
+    transaction.setBalanceAfter(player.getAccount().getBalance());
     transaction.setTime(LocalDateTime.now());
     transaction.setType(transactionType);
+    transaction.setFreeWager(isfreeWager);
     transactionRepository.save(transaction);
   }
 
@@ -163,18 +188,21 @@ public class PlayerService {
   }
 
   private Account getAccount(Player player) {
-    Account account = null;
     if (player.getAccount() != null) {
-      account = player.getAccount();
+      return player.getAccount();
     } else {
       throw new AccountNotFoundException();
     }
-    return account;
   }
 
+
+  /**
+   * Get the transaction history for a player - Limited to 10 transactions
+   * @param requestDto - The incoming request for history
+   * @return TransactionHistoryResponseDto - The requested transactions
+   */
   public TransactionHistoryResponseDto getTransactionHistory(TransactionHistoryRequestDto requestDto) {
-    if (!requestDto.getSecret().equalsIgnoreCase(transactionHistorySecret))
-    {
+    if (!requestDto.getSecret().equalsIgnoreCase(transactionHistorySecret)) {
       throw new IncorrectSecretException();
     }
 
@@ -195,9 +223,11 @@ public class PlayerService {
       TransactionResponseDTO transactionResponseDTO = new TransactionResponseDTO();
 
       transactionResponseDTO.setAmount(transaction.getAmount());
+      transactionResponseDTO.setBalanceAfter(transaction.getBalanceAfter());
       transactionResponseDTO.setTime(transaction.getTime());
       transactionResponseDTO.setTransactionId(transaction.getId());
       transactionResponseDTO.setTransactionType(transaction.getType().toString());
+      transactionResponseDTO.setFreeWager(transaction.isFreeWager());
 
       transactionHistoryResponseDto.addTransaction(transactionResponseDTO);
     }

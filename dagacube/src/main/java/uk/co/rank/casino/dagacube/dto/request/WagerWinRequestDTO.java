@@ -9,6 +9,7 @@ public class WagerWinRequestDTO {
 
   private String transactionId;
   private BigDecimal amount;
+  private String promoCode;
 
   public String getTransactionId() {
     return transactionId;
@@ -24,5 +25,13 @@ public class WagerWinRequestDTO {
 
   public void setAmount(BigDecimal amount) {
     this.amount = amount;
+  }
+
+  public String getPromoCode() {
+    return promoCode;
+  }
+
+  public void setPromoCode(String promoCode) {
+    this.promoCode = promoCode;
   }
 }
