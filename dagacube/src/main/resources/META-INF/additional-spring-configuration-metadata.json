@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "setup.initial.data",
+      "type": "java.lang.String",
+      "description": "If set to true, player accounts will be generated at start of application."
+  }
+] }
