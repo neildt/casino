@@ -5,6 +5,7 @@ package uk.co.rank.casino.dagacube.domain.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import uk.co.rank.casino.dagacube.domain.converter.LocalDateTimeConverter;
+import uk.co.rank.casino.dagacube.domain.enums.TransactionType;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -24,7 +25,8 @@ public class Transaction {
   @JsonIgnoreProperties(value = "transactions", allowSetters = true)
   private Account account;
 
-  private String type;
+  @Enumerated(EnumType.STRING)
+  private TransactionType type;
 
   private BigDecimal amount;
 
@@ -47,11 +49,11 @@ public class Transaction {
     this.account = account;
   }
 
-  public String getType() {
+  public TransactionType getType() {
     return type;
   }
 
-  public void setType(String type) {
+  public void setType(TransactionType type) {
     this.type = type;
   }
 
