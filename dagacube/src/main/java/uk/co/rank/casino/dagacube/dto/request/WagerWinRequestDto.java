@@ -5,7 +5,7 @@ package uk.co.rank.casino.dagacube.dto.request;
 
 import java.math.BigDecimal;
 
-public class WagerWinRequestDTO {
+public class WagerWinRequestDto {
 
   private String transactionId;
   private BigDecimal amount;

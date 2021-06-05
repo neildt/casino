@@ -7,17 +7,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TransactionHistoryResponseDto {
-  private List<TransactionResponseDTO> transactions = new ArrayList<>();
+  private List<TransactionResponseDto> transactions = new ArrayList<>();
 
-  public List<TransactionResponseDTO> getTransactions() {
+  public List<TransactionResponseDto> getTransactions() {
     return transactions;
   }
 
-  public void setTransactions(List<TransactionResponseDTO> transactions) {
+  public void setTransactions(List<TransactionResponseDto> transactions) {
     this.transactions = transactions;
   }
 
-  public void addTransaction(TransactionResponseDTO transaction) {
+  public void addTransaction(TransactionResponseDto transaction) {
     transactions.add(transaction);
   }
 }

@@ -18,9 +18,9 @@ import uk.co.rank.casino.dagacube.domain.model.Account;
 import uk.co.rank.casino.dagacube.domain.model.Player;
 import uk.co.rank.casino.dagacube.domain.model.Transaction;
 import uk.co.rank.casino.dagacube.dto.request.TransactionHistoryRequestDto;
-import uk.co.rank.casino.dagacube.dto.request.WagerWinRequestDTO;
+import uk.co.rank.casino.dagacube.dto.request.WagerWinRequestDto;
 import uk.co.rank.casino.dagacube.dto.response.TransactionHistoryResponseDto;
-import uk.co.rank.casino.dagacube.dto.response.TransactionResponseDTO;
+import uk.co.rank.casino.dagacube.dto.response.TransactionResponseDto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -59,10 +59,10 @@ public class PlayerService {
    * Add a wager transaction and update player balance
    *
    * @param playerId   - The player ID to add the transaction to
-   * @param requestDTO - The {@link WagerWinRequestDTO} with the transaction details
+   * @param requestDTO - The {@link WagerWinRequestDto} with the transaction details
    * @return BigDecimal - The current player balance
    */
-  public BigDecimal addWager(long playerId, WagerWinRequestDTO requestDTO) {
+  public BigDecimal addWager(long playerId, WagerWinRequestDto requestDTO) {
     Player player = getPlayer(playerId);
     BigDecimal playerBalance = player.getAccount().getBalance();
 
@@ -85,10 +85,10 @@ public class PlayerService {
    * Add a win transaction and update player balance
    *
    * @param playerId   - The player ID to add the transaction to
-   * @param requestDTO - The {@link WagerWinRequestDTO} with the transaction details
+   * @param requestDTO - The {@link WagerWinRequestDto} with the transaction details
    * @return BigDecimal - The current player balance
    */
-  public BigDecimal addWin(long playerId, WagerWinRequestDTO requestDTO) {
+  public BigDecimal addWin(long playerId, WagerWinRequestDto requestDTO) {
     Player player = getPlayer(playerId);
 
     BigDecimal playerBalance = player.getAccount().getBalance();
@@ -113,11 +113,11 @@ public class PlayerService {
    * Process the provided transaction by adding it against a player and updating the player's balance
    *
    * @param player          - The player Id to update
-   * @param requestDTO      - The {@link WagerWinRequestDTO} with the transaction details
+   * @param requestDTO      - The {@link WagerWinRequestDto} with the transaction details
    * @param transactionType - The {@link TransactionType} to add
    * @return BigDecimal - The player's balance after the transaction
    */
-  private BigDecimal processTransaction(Player player, WagerWinRequestDTO requestDTO, TransactionType transactionType) {
+  private BigDecimal processTransaction(Player player, WagerWinRequestDto requestDTO, TransactionType transactionType) {
 
     boolean isfreeWager = false;
     BigDecimal balance = player.getAccount().getBalance();
@@ -157,11 +157,11 @@ public class PlayerService {
   /**
    * Create a transaction for the provided player
    *
-   * @param requestDTO      - The {@link WagerWinRequestDTO} with the transaction details
+   * @param requestDTO      - The {@link WagerWinRequestDto} with the transaction details
    * @param transactionType - The {@link TransactionType} to add
    * @param player          - The player to which to add the transaction
    */
-  private void createTransaction(WagerWinRequestDTO requestDTO, TransactionType transactionType, Player player, boolean isfreeWager) {
+  private void createTransaction(WagerWinRequestDto requestDTO, TransactionType transactionType, Player player, boolean isfreeWager) {
     Transaction transaction = new Transaction();
     transaction.setId(requestDTO.getTransactionId());
     transaction.setAccount(player.getAccount());
@@ -196,6 +196,7 @@ public class PlayerService {
   }
 
 
+  //TODO: TECH DEBT: This should be in a TransactionService class
   /**
    * Get the transaction history for a player - Limited to 10 transactions
    * @param requestDto - The incoming request for history
@@ -220,7 +221,7 @@ public class PlayerService {
     TransactionHistoryResponseDto transactionHistoryResponseDto = new TransactionHistoryResponseDto();
 
     for (Transaction transaction : transactions) {
-      TransactionResponseDTO transactionResponseDTO = new TransactionResponseDTO();
+      TransactionResponseDto transactionResponseDTO = new TransactionResponseDto();
 
       transactionResponseDTO.setAmount(transaction.getAmount());
       transactionResponseDTO.setBalanceAfter(transaction.getBalanceAfter());

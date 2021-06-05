@@ -3,7 +3,7 @@ package uk.co.rank.casino.dagacube.dto.response;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public class TransactionResponseDTO {
+public class TransactionResponseDto {
 
   private String transactionId;
   private BigDecimal amount;

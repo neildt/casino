@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.co.rank.casino.dagacube.dto.request.TransactionHistoryRequestDto;
-import uk.co.rank.casino.dagacube.dto.request.WagerWinRequestDTO;
+import uk.co.rank.casino.dagacube.dto.request.WagerWinRequestDto;
 import uk.co.rank.casino.dagacube.dto.response.PlayerBalanceResponseDto;
 import uk.co.rank.casino.dagacube.dto.response.TransactionHistoryResponseDto;
 import uk.co.rank.casino.dagacube.service.PlayerService;
@@ -15,6 +15,7 @@ import uk.co.rank.casino.dagacube.service.PlayerService;
 import java.math.BigDecimal;
 
 @RestController
+//TODO: TECH DEBT: When '/transaction/history' is removed, this can be @RequestMapping("/v1/player/{playerId}") and all methods updated to match
 @RequestMapping("/v1")
 public class PlayerController {
   private final PlayerService playerService;
@@ -42,7 +43,7 @@ public class PlayerController {
    * @return PlayerBalanceResponseDto - The player's new balance after the transaction
    */
   @PostMapping(value = "/player/{playerId}/wager")
-  public ResponseEntity<PlayerBalanceResponseDto> addWager(@PathVariable("playerId") long playerId, WagerWinRequestDTO requestDTO) {
+  public ResponseEntity<PlayerBalanceResponseDto> addWager(@PathVariable("playerId") long playerId, WagerWinRequestDto requestDTO) {
     BigDecimal playerBalance = playerService.addWager(playerId, requestDTO);
     return ResponseEntity.status(HttpStatus.CREATED).body(new PlayerBalanceResponseDto(playerBalance));
   }
@@ -54,11 +55,12 @@ public class PlayerController {
    * @return PlayerBalanceResponseDto - The player's new balance after the transaction
    */
   @PostMapping(value = "/player/{playerId}/win")
-  public ResponseEntity<PlayerBalanceResponseDto> addWin(@PathVariable("playerId") long playerId, WagerWinRequestDTO requestDTO) {
+  public ResponseEntity<PlayerBalanceResponseDto> addWin(@PathVariable("playerId") long playerId, WagerWinRequestDto requestDTO) {
     BigDecimal playerBalance = playerService.addWin(playerId, requestDTO);
     return ResponseEntity.status(HttpStatus.CREATED).body(new PlayerBalanceResponseDto(playerBalance));
   }
 
+  //TODO: TECH DEBT: This should be in a TransactionController class
   /**
    * Get the lats 10 transactions for a player
    *
